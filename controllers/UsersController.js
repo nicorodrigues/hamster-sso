@@ -132,7 +132,7 @@ const getGoogleContacts = async (req, res, next, refreshing_token = 0) => {
                         }
                     }
                 } else {
-                    contact["first_name"] = '';
+                    contact["first_name"] = "";
                 }
 
                 // Last Name
@@ -143,7 +143,7 @@ const getGoogleContacts = async (req, res, next, refreshing_token = 0) => {
                         }
                     }
                 } else {
-                    contact["last_name"] = '';
+                    contact["last_name"] = "";
                 }
 
                 // Email Address
@@ -166,16 +166,25 @@ const getGoogleContacts = async (req, res, next, refreshing_token = 0) => {
             debug(`Error refreshing token for: ${req.user.email}`);
             respond(res, {
                 code: 400,
-                message: 'Error refreshing token',
+                message: "Error refreshing token",
             });
         }
     } catch (error) {
-        debug(`Having to refresh token for: ${req.user.email}`)
+        debug(`Having to refresh token for: ${req.user.email}`);
         console.log(error);
 
-        req.user = await users.refreshToken(req.user);
-        
-        getGoogleContacts(req, res, next, refreshing_token + 1);
+        let user_with_new_token = await users.refreshToken(req.user);
+
+        if (user_with_new_token !== false) {
+            req.user = user_with_new_token;
+
+            getGoogleContacts(req, res, next, refreshing_token + 1);
+        } else {
+            respond(res, {
+                code: 400,
+                message: "Error refreshing token",
+            });
+        }
     }
 };
 
